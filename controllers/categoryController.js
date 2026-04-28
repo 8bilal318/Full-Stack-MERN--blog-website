@@ -1,0 +1,74 @@
+const categoryModel = require('../models/Category');
+
+const allCategory = async (req, res) => {
+    const categories = await categoryModel.find();
+    res.render('admin/categories' , { categories, role: req.role});
+}
+const addCategoryPage = async (req, res) => {
+    res.render('admin/categories/create' , {role: req.role});
+}
+const addCategory = async (req, res) => {
+    
+    
+    try {
+        await categoryModel.create(req.body)
+        res.redirect('/admin/category');  // ✅ correct
+    } catch (err) {
+        res.status(400).send(err);
+    }
+}
+const updateCategoryPage = async (req, res) => {
+    const id = req.params.id;
+    try {
+        const category = await categoryModel.findById(id);
+        if(!category){
+            return res.status(404).send('Category not found');
+        }
+        res.render('admin/categories/update' , {category, role: req.role});
+    } catch (err) {
+        res.status(500).send(err);
+    }
+  
+}
+const updateCategory = async (req, res) => {
+    const id = req.params.id;
+    const { name, description } = req.body;
+
+    try {
+        const category = await categoryModel.findById(id);
+        if(!category){
+            return res.status(404).send('Category not found');
+        }
+
+        category.name = name;
+        category.description = description;
+        await category.save();
+
+        res.redirect('/admin/category');
+    } catch (err) {
+        res.status(400).send(err);
+    }
+
+}
+const deleteCategory = async (req, res) => {
+    const id = req.params.id;
+    try {
+        const category = await categoryModel.findByIdAndDelete(id);
+        if(!category){
+            return res.status(404).send('Category not found');
+        }
+        res.json({success: true});
+    } catch (err) {
+        res.status(400).send(err);
+    }
+}
+
+
+module.exports = {
+    allCategory,
+    addCategoryPage,
+    addCategory,
+    updateCategoryPage,
+    updateCategory,
+    deleteCategory
+}
